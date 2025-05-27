@@ -219,6 +219,22 @@ def extract_gps_data2(datos_gps):
     speed[:]=datos_gps[:,7]
     return t_gps,x_gps,y_gps,z_gps,course,speed
 
+def extract_gps_data3(datos_gps):
+    f,c =np.shape(datos_gps)
+    x_gps=np.zeros(f)
+    y_gps=np.zeros(f)
+    z_gps=np.zeros(f)
+    course=np.zeros(f)
+    speed=np.zeros(f)
+    t_gps=np.zeros(f)
+    t_gps[:]=datos_gps[:,0]
+    x_gps[:]=datos_gps[:,3]
+    y_gps[:]=datos_gps[:,4]
+    z_gps[:]=datos_gps[:,6]
+    course[:]=datos_gps[:,5]
+    speed[:]=datos_gps[:,7]
+    return t_gps,x_gps,y_gps,z_gps,course,speed
+
 def extract_act_data(datos_actuadores):
     f,c =np.shape(datos_actuadores)
     #print(f,c)
