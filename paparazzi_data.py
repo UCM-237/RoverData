@@ -16,14 +16,18 @@ def split_rover_data(file):
     tana=""
     avelino=""
     anibal=""
+    pepa=""
     with open(file) as archivo:
         for linea in archivo:
+            print(linea)
             x=linea.split() 
-            if x[1]=="1":
-                tana=tana+linea
-            elif x[1]=="4":
-                avelino=avelino+linea
-            elif x[1]=="6":
+            if x[1]=='1':
+                tana+=linea
+            elif x[1]=='4':
+                avelino+=linea
+            elif x[1]=='5':
+                pepa+=linea
+            elif x[1]=='6':
                 anibal=anibal+linea
     archivo.close()
     with open("tana.dat","w") as archivo: 
@@ -37,7 +41,11 @@ def split_rover_data(file):
     with open("anibal.dat","w") as archivo:
         archivo.write(anibal)
     archivo.close()
+    with open("pepa.dat","w") as archivo:
+            archivo.write(pepa)
+    archivo.close()
     return 0
+        
         
 def extract_data(file):
     sonar_data = ""
@@ -52,18 +60,22 @@ def extract_data(file):
     static_data=""
     control_data=""
     nei_data=""
+    lonlat_data=""
     with open(file) as archivo:
         for linea in archivo:
             if "BR_SONAR" in linea:
                 x=linea.split("BR_SONAR")  
                 sonar_data +=x[0]+x[1]
             elif "GPS" in linea:
-               x=linea.split("GPS")
                if "GPS_INT" in linea:
-                  continue
+                   x=linea.split("GPS_INT")  
+                   lonlat_data +=x[0]+x[1]
+                   continue
                elif "GPS_SOL" in linea:
                    continue
-               gps_data +=x[0]+x[1]
+               else:
+                   x=linea.split("GPS")
+                   gps_data +=x[0]+x[1]
             elif "INS" in linea:
                if "INS_REF" in linea:
                   continue
@@ -146,6 +158,10 @@ def extract_data(file):
     with open("datos_nei.dat","w") as archivo:
          archivo.write(nei_data)
     archivo.close()
+    
+    with open("datos_ll.dat","w") as archivo:
+         archivo.write(lonlat_data)
+    archivo.close()
 
     return 0    
 
@@ -200,6 +216,7 @@ def extract_gps_data(datos_gps):
 </message>
 '''
 
+
 def extract_gps_data2(datos_gps):
     f,c =np.shape(datos_gps)
     x_gps=np.zeros(f)
@@ -218,6 +235,40 @@ def extract_gps_data2(datos_gps):
     course[:]=datos_gps[:,5]
     speed[:]=datos_gps[:,7]
     return t_gps,x_gps,y_gps,z_gps,course,speed
+
+'''
+<message name="GPS_INT" id="155">
+<field name="ecef_x" type="int32" unit="cm" alt_unit="m"/>
+<field name="ecef_y" type="int32" unit="cm" alt_unit="m"/>
+<field name="ecef_z" type="int32" unit="cm" alt_unit="m"/>
+<field name="lat" type="int32" unit="1e7deg" alt_unit="deg" alt_unit_coef="0.0000001"/>
+<field name="lon" type="int32" unit="1e7deg" alt_unit="deg" alt_unit_coef="0.0000001"/>
+<field name="alt" type="int32" unit="mm" alt_unit="m">altitude above WGS84 reference ellipsoid</field>
+<field name="hmsl" type="int32" unit="mm" alt_unit="m">height above mean sea level (geoid)</field>
+<field name="ecef_xd" type="int32" unit="cm/s" alt_unit="m/s"/>
+<field name="ecef_yd" type="int32" unit="cm/s" alt_unit="m/s"/>
+<field name="ecef_zd" type="int32" unit="cm/s" alt_unit="m/s"/>
+<field name="pacc" type="uint32" unit="cm" alt_unit="m"/>
+<field name="sacc" type="uint32" unit="cm/s" alt_unit="m/s"/>
+<field name="tow" type="uint32"/>
+<field name="pdop" type="uint16"/>
+<field name="numsv" type="uint8"/>
+<field name="fix" type="uint8" values="NONE|NA|2D|3D|DGPS|RTK"/>
+<field name="comp_id" type="uint8" values="NONE|UBX|NMEA|SIRF|SKYTRAQ|MTK|PIKSI|XSENS|DATALINK|UDP|ARDRONE2|SIM|MULTI|VECTORNAV|IMCU"/>
+</message>
+'''
+
+def extract_gps_ll(datos_gps):
+    f,c=np.shape(datos_gps)
+    lon=[]
+    lat=[]
+    t_gps=[]
+    for i in range(f):
+        if datos_gps[i,5]!=0 and datos_gps[i,6]!=0:
+            t_gps.append(datos_gps[i,0])
+            lon.append(datos_gps[i,5]*0.0000001)
+            lat.append(datos_gps[i,6]*0.0000001)
+    return t_gps,lon,lat
 
 def extract_gps_data3(datos_gps):
     f,c =np.shape(datos_gps)
@@ -323,11 +374,12 @@ def extract_nei_data(nei_data,id_nei):
     t=[]
     for i in range(f):
         if(nei_data[i,2]==id_nei):
-            t.append(nei_data[i,0])
-            x.append(nei_data[i,5])
-            y.append(nei_data[i,6])
-            vx.append(nei_data[i,7])
-            vy.append(nei_data[i,8])
+            if nei_data[i,5]!=0 and nei_data[i,6]!=0:
+                t.append(nei_data[i,0])
+                x.append(nei_data[i,5])
+                y.append(nei_data[i,6])
+                vx.append(nei_data[i,7])
+                vy.append(nei_data[i,8])
     return t,x,y,vx,vy
     
     
@@ -884,3 +936,4 @@ def extract_control_data(datos_control):
     delta[:]=datos_control[:,5]
      
     return t_control,speed_sp,speed_er,throttle,delta
+
