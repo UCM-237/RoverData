@@ -148,6 +148,37 @@ for k in range(num_points_plot):
     original_fun[k,0] = func_lines(points_trajectory_x, molli_domain_values[k], num_segments)
     original_fun[k,1] = func_lines(points_trajectory_y, molli_domain_values[k], num_segments)
 
+# Errors to the trajectory
+
+t_index_first = (time >= t_first[0]) & (time < t_first[1])
+t_index_second = (time >= t_second[0]) & (time < t_second[1])
+t_index_third = (time >= t_third[0]) & (time < t_third[1])
+
+
+len_first = len(pos_y[t_index_first])
+len_second = len(pos_y[t_index_second])
+len_third = len(pos_y[t_index_third])
+
+errors_first = np.zeros((len_first,2))
+errors_second = np.zeros((len_second,2))
+errors_third = np.zeros((len_third,2))
+
+# First trajectory
+for k in range(len_first):
+    error_y = np.min(np.abs(pos_y[t_index_first][k] - mollifiers_values[:,1,0]))
+    error_x = np.min(np.abs(pos_x[t_index_first][k] - mollifiers_values[:,0,0]))
+    errors_first[k] = np.array([error_y,error_x])
+
+for k in range(len_second):
+    error_y = np.min(np.abs(pos_y[t_index_second][k] - mollifiers_values[:,1,1]))
+    error_x = np.min(np.abs(pos_x[t_index_second][k] - mollifiers_values[:,0,1]))
+    errors_second[k] = np.array([error_y,error_x])
+
+for k in range(len_third):
+    error_y = np.min(np.abs(pos_y[t_index_third][k] - mollifiers_values[:,1,2]))
+    error_x = np.min(np.abs(pos_x[t_index_third][k] - mollifiers_values[:,0,2]))
+    errors_third[k] = np.array([error_y,error_x])
+
 # From telemetry
 L = 0.04
 
@@ -167,15 +198,18 @@ plt.title("Trajectory and position of the rover \n $\\varepsilon_1=\\varepsilon_
 plt.axis('equal')
 
 plt.subplot(122)
-plt.plot(time[t_index_first] - time[t_index_first][0], phi_errors_real[t_index_first,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
-plt.plot(time[t_index_first] - time[t_index_first][0], phi_errors_real[t_index_first,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_first] - time[t_index_first][0], phi_errors_real[t_index_first,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_first] - time[t_index_first][0], phi_errors_real[t_index_first,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
 #plt.plot(time[t_index_first], np.abs(pos_y[t_index_first] -mollifiers_values[] ))
-plt.ylim([-3,2])
-max_error = 3
+#plt.ylim([-3,2])
+#max_error = 3
 #plt.plot([time[t_index_first][0], time[t_index_first][-1]] - time[t_index_first][0], max_error *np.ones(2), 'k--')
 #plt.plot([time[t_index_first][0], time[t_index_first][-1]] - time[t_index_first][0], -max_error *np.ones(2), 'k--')
+plt.ylim([0,1])
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b', 
+         label=r"dist$(r(t;\xi_0), \mathcal{P})$")
 plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g', label=r"GNSS acc")
-plt.plot(time[t_index_first] - time[t_index_first][0], -gps_acc_pos[t_index_first], 'g')
+#plt.plot(time[t_index_first] - time[t_index_first][0], -gps_acc_pos[t_index_first], 'g')
 plt.xlabel(r"Time $(s)$")
 plt.ylabel(r"Errors $(m)$")
 plt.title("GNSS and trajectory errors \n $\\varepsilon_1=\\varepsilon_2=0.5$")
@@ -199,15 +233,17 @@ plt.title("Trajectory and position of the rover \n $\\varepsilon_1=\\varepsilon_
 plt.axis('equal')
 
 plt.subplot(122)
-plt.plot(time[t_index_second] - time[t_index_second][0], phi_errors_real[t_index_second,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
-plt.plot(time[t_index_second] - time[t_index_second][0], phi_errors_real[t_index_second,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_second] - time[t_index_second][0], phi_errors_real[t_index_second,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_second] - time[t_index_second][0], phi_errors_real[t_index_second,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
 #plt.plot(time[t_index_first], np.abs(pos_y[t_index_first] -mollifiers_values[] ))
-plt.ylim([-3,2])
-max_error = 3
+plt.ylim([0,1])
+#max_error = 3
 #plt.plot([time[t_index_second][0], time[t_index_second][-1]] - time[t_index_second][0], max_error *np.ones(2), 'k--')
 #plt.plot([time[t_index_second][0], time[t_index_second][-1]] - time[t_index_second][0], -max_error *np.ones(2), 'k--')
+plt.plot(time[t_index_second] - time[t_index_second][0], np.sqrt(errors_second[:,0]**2 + errors_second[:,1]**2), 'b', 
+         label=r"dist$(r(t;\xi_0), \mathcal{P})$")
 plt.plot(time[t_index_second] - time[t_index_second][0], gps_acc_pos[t_index_second], 'g', label=r"GNSS acc")
-plt.plot(time[t_index_second] - time[t_index_second][0], -gps_acc_pos[t_index_second], 'g')
+#plt.plot(time[t_index_second] - time[t_index_second][0], -gps_acc_pos[t_index_second], 'g')
 plt.xlabel(r"Time $(s)$")
 plt.ylabel(r"Errors $(m)$")
 plt.title("GNSS and trajectory errors \n $\\varepsilon_1=\\varepsilon_2=1.0$")
@@ -230,15 +266,17 @@ plt.title("Trajectory and position of the rover \n $\\varepsilon_1=\\varepsilon_
 plt.axis('equal')
 
 plt.subplot(122)
-plt.plot(time[t_index_third] - time[t_index_third][0], phi_errors_real[t_index_third,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
-plt.plot(time[t_index_third] - time[t_index_third][0], phi_errors_real[t_index_third,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_third] - time[t_index_third][0], phi_errors_real[t_index_third,0] / L, 'r', label=r"$F_1(\Phi(t,\xi_0)_3) - r_1(t;\pi(\xi_0))$")
+#plt.plot(time[t_index_third] - time[t_index_third][0], phi_errors_real[t_index_third,1] / L, 'b', label=r"$F_2(\Phi(t,\xi_0)_3)-r_2(t;\pi(\xi_0))$")
 #plt.plot(time[t_index_first], np.abs(pos_y[t_index_first] -mollifiers_values[] ))
-plt.ylim([-3,5])
-max_error = 3
+plt.ylim([0,1])
+#max_error = 3
 #plt.plot([time[t_index_third][0], time[t_index_third][-1]] - time[t_index_third][0], max_error *np.ones(2), 'k--')
 #plt.plot([time[t_index_third][0], time[t_index_third][-1]] - time[t_index_third][0], -max_error *np.ones(2), 'k--')
+plt.plot(time[t_index_third] - time[t_index_third][0], np.sqrt(errors_third[:,0]**2 + errors_third[:,1]**2), 'b', 
+         label=r"dist$(r(t;\xi_0), \mathcal{P})$")
 plt.plot(time[t_index_third] - time[t_index_third][0], gps_acc_pos[t_index_third], 'g', label=r"GNSS acc")
-plt.plot(time[t_index_third] - time[t_index_third][0], -gps_acc_pos[t_index_third], 'g')
+#plt.plot(time[t_index_third] - time[t_index_third][0], -gps_acc_pos[t_index_third], 'g')
 
 plt.xlabel(r"Time $(s)$")
 plt.ylabel(r"Errors $(m)$")
