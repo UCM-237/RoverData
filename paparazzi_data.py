@@ -45,7 +45,9 @@ def split_rover_data(file):
             archivo.write(pepa)
     archivo.close()
     return 0
-        
+ 
+#def clean_nei(data):
+           
         
 def extract_data(file):
     sonar_data = ""
@@ -215,7 +217,23 @@ def extract_gps_data(datos_gps):
 <field name="gps_nb_err" type="uint8"/>
 </message>
 '''
-
+def extract_utm_data(datos_gps):
+    f,c =np.shape(datos_gps)
+    utm_east=np.zeros(f)
+    utm_north=np.zeros(f)
+    alt=np.zeros(f)
+    course=np.zeros(f)
+    speed=np.zeros(f)
+    t_gps=np.zeros(f)
+    utm_zone=np.zeros(f)
+    t_gps[:]=datos_gps[:,0]
+    utm_east[:]=datos_gps[:,3]
+    utm_north[:]=datos_gps[:,4]
+    alt[:]=datos_gps[:,6]
+    course[:]=datos_gps[:,5]
+    speed[:]=datos_gps[:,7]
+    utm_zone[:]=datos_gps[:,11]
+    return t_gps,utm_east,utm_north,alt,course,speed,utm_zone
 
 def extract_gps_data2(datos_gps):
     f,c =np.shape(datos_gps)
@@ -364,7 +382,18 @@ def extract_link_data(datos_link):
     lost_time[:]=datos_link[:,4]
    
     return t,lost_time
-
+'''
+<message name="CBF_REC" id="184">
+<description> CBF telemetry message. </description>
+<field name="Neigbour" type="uint16"/>
+<field name="Available" type="uint8"/>
+<field name="Times_lost" type="uint32"/>
+<field name="px" type="float"/>
+<field name="py" type="float"/>
+<field name="vx" type="float"/>
+<field name="vy" type="float"/>
+</message>
+'''
 def extract_nei_data(nei_data,id_nei):
     f,c =np.shape(nei_data)
     x=[]
