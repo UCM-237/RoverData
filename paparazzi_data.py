@@ -110,8 +110,8 @@ def extract_data(file):
             elif "BOAT_CTRL" in linea:
                 x=linea.split("BOAT_CTRL")
                 control_data+=x[0]+x[1]
-            elif "CBF_REC" in linea:
-                x=linea.split("CBF_REC")
+            elif "CBF" in linea:
+                x=linea.split("CBF")
                 nei_data+=x[0]+x[1]
                 
     archivo.close()
@@ -780,56 +780,108 @@ def mux_compute(x,y,t_ins,xd,yd,xdd,ydd,t_comp,grados,t0,t1,plot_circle=True):
 
     return np.mean(mu_x),r
 
-def combine_data(dat_inercial,dat_comp):
-    t_comp=dat_comp[:,0]
-    grados=dat_comp[:,1]
-    t_inercial=dat_inercial[:,0]
-    xf=dat_inercial[:,1]
-    yf=dat_inercial[:,2]
-    xdf=dat_inercial[:,3]
-    ydf=dat_inercial[:,4]
-    xddf=dat_inercial[:,5]
-    yddf=dat_inercial[:,6]
-    n_comp=len(t_comp)
-    n_ins=len(t_inercial)
-    j=0
-    pos=np.zeros([n_comp-1,7])
-    t=np.zeros(n_comp-1)
+
+
+def combine_data(dat_inercial, dat_comp):
+    """
+    Combina datos inerciales y de comparación en una sola serie temporal,
+    interpolando cuando las marcas de tiempo no coinciden.
+
+    Parameters
+    ----------
+    dat_inercial : ndarray of shape (n, 7)
+        Datos del sistema inercial. Las columnas representan:
+            - 0: tiempo
+            - 1: posición en X (xf)
+            - 2: posición en Y (yf)
+            - 3: velocidad en X (xdf)
+            - 4: velocidad en Y (ydf)
+            - 5: aceleración en X (xddf)
+            - 6: aceleración en Y (yddf)
+    dat_comp : ndarray of shape (m, 2)
+        Datos de comparación. Las columnas representan:
+            - 0: tiempo
+            - 1: ángulo (grados)
+
+    Returns
+    -------
+    t : ndarray of shape (m-1,)
+        Vector de tiempos alineados con los datos combinados.
+    pos : ndarray of shape (m-1, 7)
+        Matriz con los datos fusionados. Columnas:
+            - 0: posición en X
+            - 1: posición en Y
+            - 2: ángulo en grados
+            - 3: velocidad en X
+            - 4: velocidad en Y
+            - 5: aceleración en X
+            - 6: aceleración en Y
+
+    Notes
+    -----
+    - Si las marcas de tiempo entre `dat_inercial` y `dat_comp` coinciden 
+      (diferencia menor a 0.5), se toman los valores directamente.
+    - En caso contrario, se realiza una interpolación lineal con `np.interp`.
+    - El resultado tiene longitud `m-1` porque se procesan intervalos entre 
+      pares de muestras de `dat_comp`.
+
+    Examples
+    --------
+    >>> t, pos = combine_data(dat_inercial, dat_comp)
+    >>> t.shape
+    (m-1,)
+    >>> pos.shape
+    (m-1, 7)
+    """
+    t_comp = dat_comp[:, 0]
+    grados = dat_comp[:, 1]
+    t_inercial = dat_inercial[:, 0]
+    xf = dat_inercial[:, 1]
+    yf = dat_inercial[:, 2]
+    xdf = dat_inercial[:, 3]
+    ydf = dat_inercial[:, 4]
+    xddf = dat_inercial[:, 5]
+    yddf = dat_inercial[:, 6]
+
+    n_comp = len(t_comp)
+    n_ins = len(t_inercial)
+    j = 0
+    pos = np.zeros([n_comp-1, 7])
+    t = np.zeros(n_comp-1)
+
     for i in range(n_comp-1):
-        #print(t_inercial[j]-t_comp[i])
-        if j>(n_ins-2):
-            pos[i,0]=np.interp(t_comp[i],t_inercial[j-1:j], xf[j-1:j])
-            pos[i,1]=np.interp(t_comp[i],t_inercial[j-1:j], yf[j-1:j])
-            pos[i,2]=grados[i]
-            pos[i,3]=np.interp(t_comp[i],t_inercial[j-1:j], xdf[j-1:j])
-            pos[i,4]=np.interp(t_comp[i],t_inercial[j-1:j], ydf[j-1:j])
-            pos[i,5]=np.interp(t_comp[i],t_inercial[j-1:j], xddf[j-1:j])
-            pos[i,6]=np.interp(t_comp[i],t_inercial[j-1:j], yddf[j-1:j])
-            t[i]=t_comp[i]
+        if j > (n_ins-2):
+            pos[i, 0] = np.interp(t_comp[i], t_inercial[j-1:j], xf[j-1:j])
+            pos[i, 1] = np.interp(t_comp[i], t_inercial[j-1:j], yf[j-1:j])
+            pos[i, 2] = grados[i]
+            pos[i, 3] = np.interp(t_comp[i], t_inercial[j-1:j], xdf[j-1:j])
+            pos[i, 4] = np.interp(t_comp[i], t_inercial[j-1:j], ydf[j-1:j])
+            pos[i, 5] = np.interp(t_comp[i], t_inercial[j-1:j], xddf[j-1:j])
+            pos[i, 6] = np.interp(t_comp[i], t_inercial[j-1:j], yddf[j-1:j])
+            t[i] = t_comp[i]
             continue
-        if np.abs(t_inercial[j]-t_comp[i])<0.5:
-            t[i]=t_comp[j]
-            pos[i,0]=xf[j]
-            pos[i,1]=yf[j]
-            pos[i,2]=grados[i]
-            pos[i,3]=xdf[j]
-            pos[i,4]=ydf[j]
-            pos[i,5]=xddf[j]
-            pos[i,6]=yddf[j]
-            #print("Coinciden:\t",t[i],"\t",pos[i])
-            j+=1
-            
+        if np.abs(t_inercial[j]-t_comp[i]) < 0.5:
+            t[i] = t_comp[j]
+            pos[i, 0] = xf[j]
+            pos[i, 1] = yf[j]
+            pos[i, 2] = grados[i]
+            pos[i, 3] = xdf[j]
+            pos[i, 4] = ydf[j]
+            pos[i, 5] = xddf[j]
+            pos[i, 6] = yddf[j]
+            j += 1
         else:
-            pos[i,0]=np.interp(t_comp[i],t_inercial[j-1:j], xf[j-1:j])
-            pos[i,1]=np.interp(t_comp[i],t_inercial[j-1:j], yf[j-1:j])
-            pos[i,2]=grados[i]
-            pos[i,3]=np.interp(t_comp[i],t_inercial[j-1:j], xdf[j-1:j])
-            pos[i,4]=np.interp(t_comp[i],t_inercial[j-1:j], ydf[j-1:j])
-            pos[i,5]=np.interp(t_comp[i],t_inercial[j-1:j], xddf[j-1:j])
-            pos[i,6]=np.interp(t_comp[i],t_inercial[j-1:j], yddf[j-1:j])
-            t[i]=t_comp[i]
-            #print("No coinciden:\t",t[i],"\t",pos[i])
-    return t,pos
+            pos[i, 0] = np.interp(t_comp[i], t_inercial[j-1:j], xf[j-1:j])
+            pos[i, 1] = np.interp(t_comp[i], t_inercial[j-1:j], yf[j-1:j])
+            pos[i, 2] = grados[i]
+            pos[i, 3] = np.interp(t_comp[i], t_inercial[j-1:j], xdf[j-1:j])
+            pos[i, 4] = np.interp(t_comp[i], t_inercial[j-1:j], ydf[j-1:j])
+            pos[i, 5] = np.interp(t_comp[i], t_inercial[j-1:j], xddf[j-1:j])
+            pos[i, 6] = np.interp(t_comp[i], t_inercial[j-1:j], yddf[j-1:j])
+            t[i] = t_comp[i]
+
+    return t, pos
+
 
 
 def ins_filtered(x,y,xd,yd,xdd,ydd):
@@ -966,3 +1018,93 @@ def extract_control_data(datos_control):
      
     return t_control,speed_sp,speed_er,throttle,delta
 
+'''<message name="CBF" id="183">
+<description> CBF telemetry message. </description>
+<field name="Xi_x" type="float"/>
+<field name="Xi_y" type="float"/>
+<field name="Xi_CBF_x" type="float"/>
+<field name="Xi_CBF_y" type="float"/>
+<field name="Num_neig" type="uint8"/>
+<field name="Active_conds" type="uint8"/>
+<field name="d" type="float[]"/>
+<field name="R" type="float"/>
+<field name="alpha" type="float"/>
+<field name="nmes_env" type="uint32"/>
+<field name="nmes_rec" type="uint32"/>
+</message>'''
+def extract_CBF(datos):
+    f,c =np.shape(datos)
+    t=np.zeros(f)
+    Xi=np.zeros((f,2))
+    Xi_CBF=np.zeros((f,2))
+    nnei=np.zeros(f)
+    act_cond=np.zeros(f)
+    d=np.zeros((f,4))
+    R=np.zeros(f)
+    alpha=np.zeros(f)
+    
+    t[:]=datos[:,0]
+    Xi[:,0]=datos[:,2]
+    Xi[:,1]=datos[:,3]
+    Xi_CBF[:,0]=datos[:,4]
+    Xi_CBF[:,1]=datos[:,5]
+    nnei[:]=datos[:,6]
+    act_cond[:]=datos[:,7]
+    d[:,:]=datos[:,8:12]
+    R[:]=datos[:,12]
+    alpha[:]=datos[:,13]
+
+    return t,Xi,Xi_CBF,nnei,act_cond,d,R,alpha
+
+
+
+
+def combine_generic(datos1, datos2, mode="interp", tol=0.5):
+    """
+    Combina dos conjuntos de datos basados en la primera columna como tiempo,
+    usando interpolación vectorizada.
+
+    Parameters
+    ----------
+    datos1 : ndarray of shape (n, p)
+        Primer conjunto de datos. La primera columna debe ser el tiempo y las
+        siguientes (p-1) columnas son variables asociadas.
+    datos2 : ndarray of shape (m, q)
+        Segundo conjunto de datos. La primera columna debe ser el tiempo y las
+        siguientes (q-1) columnas son variables asociadas.
+    mode : {"interp", "auto"}, default="interp"
+        - "interp": siempre interpola valores desde datos1 (más rápido).
+        - "auto": si los tiempos de datos1 y datos2 coinciden (diferencia < tol),
+          se usan directamente; en caso contrario, se interpola.
+    tol : float, default=0.5
+        Tolerancia en segundos para considerar que los tiempos coinciden
+        (solo usado en modo "auto").
+
+    Returns
+    -------
+    t : ndarray of shape (m-1,)
+        Vector de tiempos alineados (provenientes de `datos2`).
+    datos_combinados : ndarray of shape (m-1, (p-1) + (q-1))
+        Matriz con los datos fusionados. Contiene:
+            - (p-1) columnas interpoladas desde `datos1`
+            - (q-1) columnas originales desde `datos2`
+    """
+    t1, vars1 = datos1[:, 0], datos1[:, 1:]
+    t2, vars2 = datos2[:, 0], datos2[:, 1:]
+
+    # Interpolación vectorizada de todas las columnas de datos1
+    interp_vals = np.vstack([
+        np.interp(t2[:-1], t1, vars1[:, k]) for k in range(vars1.shape[1])
+    ]).T  # shape: (m-1, p-1)
+
+    if mode == "auto":
+        # Identificar coincidencias de tiempo
+        mask = np.isin(t2[:-1], t1) | (np.min(np.abs(t1[:, None] - t2[:-1]), axis=0) < tol)
+        for idx in np.where(mask)[0]:
+            nearest_idx = np.argmin(np.abs(t1 - t2[idx]))
+            interp_vals[idx, :] = vars1[nearest_idx, :]
+
+    # Concatenar datos1 interpolados con datos2 originales (excepto columna de tiempo)
+    datos_combinados = np.hstack([interp_vals, vars2[:-1, :]])
+
+    return t2[:-1], datos_combinados

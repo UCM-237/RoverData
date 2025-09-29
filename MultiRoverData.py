@@ -11,11 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-file="data20250630/25_06_30__10_26_45.data"
-ppdat.split_rover_data(file)
+file="data202507/25_07_21__12_01_50.data"
+#ppdat.split_rover_data(file)
 
 '''Anibal'''
-ppdat.extract_data("data20250630/anibal.dat")
+ppdat.extract_data("data202507/21_12_01/anibal.dat")
 nei_data=np.loadtxt("datos_nei.dat")
 
 #datos_anibal=ppdat.extract_nei_data(nei_data, 6)
@@ -73,7 +73,7 @@ plt.legend()
 
 
 '''Avelino'''
-ppdat.extract_data("data20250630/avelino.dat")
+ppdat.extract_data("data202507/21_12_01/avelino.dat")
 nei_data=np.loadtxt("datos_nei.dat")
 
 datos_anibal=ppdat.extract_nei_data(nei_data, 6)
@@ -105,7 +105,7 @@ plt.legend()
 
 
 '''Pepa'''
-ppdat.extract_data("data20250630/pepa.dat")
+ppdat.extract_data("data202507/21_12_01/pepa.dat")
 nei_data=np.loadtxt("datos_nei.dat")
 
 datos_avelino=ppdat.extract_nei_data(nei_data, 4)
