@@ -204,7 +204,7 @@ for k in range(len(epsilons)):
         plt.plot(mollifiers_values[:,1,k], mollifiers_values[:,0,k], '--')
 
 plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b', label=r"$r(t;r_0)$", linewidth=2)
-plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r(0)$")
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
 plt.xlabel(r"$(m)$")
 plt.ylabel(r"$(m)$")
 plt.legend()
