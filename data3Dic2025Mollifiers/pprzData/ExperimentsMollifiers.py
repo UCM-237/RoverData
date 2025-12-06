@@ -19,7 +19,7 @@ import scipy as sp
 import pandas as pd
 plt.rcParams['figure.dpi'] = 120
 plt.rcParams.update({
-        'font.size': 18,
+        'font.size': 10,
     'text.usetex': True,
     'text.latex.preamble': r'\usepackage{amsfonts}'
 })
@@ -128,8 +128,9 @@ index_eps_points = (data_points_real[:,0]==0) # Booleans
 index_where_eps_interested = index_eps_points & ((time >= t_first[0]) & (time < t_first[1]))
 eps_x = data_points_real[index_where_eps_interested, 3]
 eps_y = data_points_real[index_where_eps_interested, 4]
-eps_unique = np.unique(eps_x)
-
+eps_unique, unique_indices = np.unique(eps_x, return_index=True)
+unique_indices = np.sort(unique_indices)
+eps_unique = eps_x[unique_indices]
 #%%
 # Get X points and Y points of the trajectory
 index_y_points = np.argwhere(data_points_real[:,0]<0)[-1][-1]
@@ -203,7 +204,7 @@ for k in range(len(epsilons)):
     else:
         plt.plot(mollifiers_values[:,1,k], mollifiers_values[:,0,k], '--')
 
-plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b', label=r"$r(t;r_0)$", linewidth=2)
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b', label=r"$r(t;r_0)$", linewidth=3)
 plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
 plt.xlabel(r"$(m)$")
 plt.ylabel(r"$(m)$")
@@ -223,7 +224,159 @@ plt.title("GNSS and trajectory errors")
 plt.legend()
 plt.tight_layout()
 
+#%%
+plt.close('all')
+plt.figure(figsize=(8, 12))
+n0 = 35
+n1 = 65
+n2 = 95
+n3 = 125
+n4 = 160
+n5 = -1
 
+errors_path = np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2)
+
+#t_index_first_aux = np.flip(t_index_first)
+plt.subplot(621)
+plt.title(r"$\varepsilon = " + str(epsilons[0]) + "$")
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,0], mollifiers_values[:,0,0], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][0:n0], pos_x[t_index_first][0:n0], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+
+plt.legend()
+plt.axis('equal')
+
+plt.subplot(622)
+plt.title(r"$\varepsilon = " + str(epsilons[0]) + "$")
+plt.ylim([0,1])
+plt.plot(time[t_index_first][0:n0] - time[t_index_first][0], errors_path[0:n0], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][0:n0] - time[t_index_first][0], gps_acc_pos[t_index_first][0:n0], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.legend()
+
+plt.subplot(623)
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.title(r"$\varepsilon = " + str(epsilons[1]) + "$")
+
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,1], mollifiers_values[:,0,1], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][n0:n1], pos_x[t_index_first][n0:n1], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+plt.axis('equal')
+plt.legend()
+
+
+
+plt.subplot(624)
+plt.title(r"$\varepsilon = " + str(epsilons[1]) + "$")
+
+plt.ylim([0,1])
+plt.plot(time[t_index_first][n0:n1] - time[t_index_first][0], errors_path[n0:n1], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][n0:n1] - time[t_index_first][0], gps_acc_pos[t_index_first][n0:n1], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.legend()
+
+plt.subplot(625)
+plt.title(r"$\varepsilon = " + str(epsilons[2]) + "$")
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,2], mollifiers_values[:,0,2], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][n1:n2], pos_x[t_index_first][n1:n2], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+plt.axis('equal')
+plt.legend()
+
+
+
+plt.subplot(626)
+plt.title(r"$\varepsilon = " + str(epsilons[2]) + "$")
+plt.ylim([0,1])
+plt.plot(time[t_index_first][n1:n2] - time[t_index_first][0], errors_path[n1:n2], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][n1:n2] - time[t_index_first][0], gps_acc_pos[t_index_first][n1:n2], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.legend()
+
+plt.subplot(627)
+plt.title(r"$\varepsilon = " + str(epsilons[3]) + "$")
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,3], mollifiers_values[:,0,3], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][n2:n3], pos_x[t_index_first][n2:n3], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+plt.axis('equal')
+plt.legend()
+
+
+
+plt.subplot(628)
+plt.title(r"$\varepsilon = " + str(epsilons[3]) + "$")
+plt.ylim([0,1])
+plt.plot(time[t_index_first][n2:n3] - time[t_index_first][0], errors_path[n2:n3], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][n2:n3] - time[t_index_first][0], gps_acc_pos[t_index_first][n2:n3], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.legend()
+
+plt.subplot(629)
+plt.title(r"$\varepsilon = " + str(epsilons[4]) + "$")
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,4], mollifiers_values[:,0,4], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][n3:n4], pos_x[t_index_first][n3:n4], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+plt.axis('equal')
+plt.legend()
+
+
+plt.subplot(6,2,10)
+plt.title(r"$\varepsilon = " + str(epsilons[4]) + "$")
+plt.ylim([0,1])
+plt.plot(time[t_index_first][n3:n4] - time[t_index_first][0], errors_path[n3:n4], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][n3:n4] - time[t_index_first][0], gps_acc_pos[t_index_first][n3:n4], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.legend()
+
+plt.subplot(6,2,11)
+plt.title(r"$\varepsilon = " + str(epsilons[5]) + "$")
+#plt.plot(points_trajectory_y, points_trajectory_x, 'kx', markersize=10)
+plt.plot(original_fun[:,1], original_fun[:,0], 'k', label=r"$f$")
+plt.plot(mollifiers_values[:,1,5], mollifiers_values[:,0,5], 'r', label=r"$F_{\varepsilon}$")
+plt.plot(pos_y[t_index_first], pos_x[t_index_first], 'b--')
+plt.plot(pos_y[t_index_first][n4:n5], pos_x[t_index_first][n4:n5], 'b', label=r"$r(t;r_0)$", linewidth=3)
+plt.plot(pos_y[t_index_first][0], pos_x[t_index_first][0], 'bx', markersize=12, label=r"$r_0$")
+plt.axis('equal')
+plt.legend()
+
+
+plt.subplot(6,2,12)
+plt.title(r"$\varepsilon = " + str(epsilons[5]) + "$")
+plt.ylim([0,1])
+plt.plot(time[t_index_first][n4:n5] - time[t_index_first][0], errors_path[n4:n5], 'b', 
+         label=r"dist$(r(t;r_0), \mathcal{P})$", linewidth=3)
+plt.plot(time[t_index_first][n4:n5] - time[t_index_first][0], gps_acc_pos[t_index_first][n4:n5], 'g', label=r"GNSS acc", linewidth=3)
+plt.plot(time[t_index_first] - time[t_index_first][0], np.sqrt(errors_first[:,0]**2 + errors_first[:,1]**2), 'b--')
+plt.plot(time[t_index_first] - time[t_index_first][0], gps_acc_pos[t_index_first], 'g--')
+plt.xlabel(r"Time $(s)$")
+plt.ylabel(r"Errors $(m)$")
+plt.legend()
+
+plt.tight_layout()
 # ## Show data of second trajectory
 # t_index_second = (time >= t_second[0]) & (time < t_second[1])
 
